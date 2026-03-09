@@ -1,11 +1,19 @@
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
-use rayon::prelude::*;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::mpsc::Sender;
-use std::sync::Arc;
 use serde::Serialize;
 use std::time::Instant;
+
+#[cfg(not(target_arch = "wasm32"))]
+use rayon::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::mpsc::Sender;
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::Arc;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 pub const BASE58_ALPHABET: &str = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -25,6 +33,7 @@ pub struct ProgressUpdate {
     pub needed: usize,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Clone)]
 pub enum GrinderEvent {
     Progress(ProgressUpdate),
@@ -55,6 +64,12 @@ pub fn validate_prefix(prefix: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn validate_prefix_wasm(prefix: &str) -> Result<(), String> {
+    validate_prefix(prefix)
+}
+
 pub fn get_difficulty_estimate(prefix_len: usize) -> (String, String) {
     match prefix_len {
         1 => ("Instant".to_string(), "🟢 Instant".to_string()),
@@ -73,6 +88,7 @@ pub fn encode_private_key(sk: &SigningKey) -> String {
     bs58::encode(&bytes).into_string()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn grind(
     prefix: String,
     count: usize,
@@ -166,11 +182,33 @@ pub fn grind(
 
     abort_signal.store(true, Ordering::Relaxed);
     
-    let total_attempts = attempts.load(Ordering::Relaxed);
+    total_attempts = attempts.load(Ordering::Relaxed);
     let final_found = found_count.load(Ordering::Relaxed) as usize;
     let _ = tx.send(GrinderEvent::Done {
         total_attempts,
         elapsed: start_time.elapsed().as_secs_f64(),
         found: final_found,
     });
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn grind_batch_wasm(prefix: &str, batch_size: usize) -> Option<String> {
+    let prefix_lower = prefix.to_lowercase();
+    let mut rng = OsRng;
+    
+    for _ in 0..batch_size {
+        let sk = SigningKey::generate(&mut rng);
+        let addr = bs58::encode(sk.verifying_key().to_bytes().as_slice()).into_string();
+        
+        if addr.to_lowercase().starts_with(&prefix_lower) {
+            let pk = encode_private_key(&sk);
+            let json = serde_json::json!({
+                "public_key": addr,
+                "private_key": pk
+            });
+            return Some(json.to_string());
+        }
+    }
+    None
 }
