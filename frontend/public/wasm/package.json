@@ -1,0 +1,15 @@
+{
+  "name": "solana-vanity",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "solana_vanity_bg.wasm",
+    "solana_vanity.js",
+    "solana_vanity.d.ts"
+  ],
+  "main": "solana_vanity.js",
+  "types": "solana_vanity.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
