@@ -105,14 +105,14 @@ export default function Home() {
           <CardContent className="space-y-6 pt-6 flex flex-col items-center">
 
             <div className="w-full space-y-2">
-              <label className="text-sm font-medium text-slate-300">Desired Prefix (Case-Insensitive)</label>
+              <label className="text-sm font-medium text-slate-300">Desired Prefix (Case-Sensitive)</label>
               <Input
                 value={prefix}
                 onChange={(e) => setPrefix(e.target.value)}
                 placeholder="e.g. MOON (max 6 chars)"
                 maxLength={6}
                 disabled={isGrinding}
-                className="bg-slate-900/50 border-slate-700 text-slate-100 placeholder:text-slate-500 text-center text-lg tracking-widest uppercase font-mono h-14"
+                className="bg-slate-900/50 border-slate-700 text-slate-100 placeholder:text-slate-500 text-center text-lg tracking-widest font-mono h-14"
               />
               {errorMsg && <p className="text-red-400 text-xs mt-1 text-center font-medium animate-pulse">{errorMsg}</p>}
             </div>
