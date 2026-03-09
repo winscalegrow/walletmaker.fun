@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Vanity Wallet Generator</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --blue: #58a6ff;
+            --green: #3fb950;
+            --purple: #bc8cff;
+            --red: #f85149;
+            --yellow: #d29922;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 700px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--purple), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.5rem;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: monospace;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+
+        .char-counter {
+            position: absolute;
+            right: 16px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .validation-message {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: var(--red);
+            min-height: 20px;
+        }
+
+        .difficulty-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .difficulty-bar {
+            flex-grow: 1;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .difficulty-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .difficulty-text {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .difficulty-est {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        button.primary {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: var(--blue);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button.primary:hover:not(:disabled) {
+            background-color: #4992e6;
+        }
+
+        button.primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button.primary:disabled {
+            background-color: var(--border);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        button.stop {
+            background-color: var(--red);
+        }
+
+        button.stop:hover:not(:disabled) {
+            background-color: #d13a33;
+        }
+
+        /* Progress Area */
+        .progress-area {
+            display: none;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            background-color: var(--bg);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .progress-bar-container {
+            height: 4px;
+            background-color: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--blue);
+            width: 30%;
+            animation: indeterminate 1.5s infinite linear;
+            transform-origin: 0% 50%;
+        }
+
+        @keyframes indeterminate {
+            0% {
+                transform: translateX(-100%) scaleX(0.2);
+            }
+
+            50% {
+                transform: translateX(0) scaleX(0.5);
+            }
+
+            100% {
+                transform: translateX(100%) scaleX(0.2);
+            }
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        /* Results Area */
+        .results-area {
+            margin-top: 32px;
+        }
+
+        .result-card {
+            background-color: var(--card);
+            border: 1px solid var(--green);
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(63, 185, 80, 0.1);
+        }
+
+        .result-header {
+            background-color: rgba(63, 185, 80, 0.1);
+            padding: 12px 20px;
+            font-weight: 600;
+            color: var(--green);
+            border-bottom: 1px solid rgba(63, 185, 80, 0.2);
+        }
+
+        .result-body {
+            padding: 20px;
+        }
+
+        .key-row {
+            margin-bottom: 16px;
+        }
+
+        .key-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .key-label {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .key-warning {
+            color: var(--yellow);
+            font-size: 0.8rem;
+        }
+
+        .key-value-container {
+            display: flex;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            align-items: center;
+        }
+
+        .key-value {
+            font-family: monospace;
+            font-size: 1rem;
+            flex-grow: 1;
+            word-break: break-all;
+            /* Hide the text visually if blurred */
+            transition: filter 0.2s, opacity 0.2s;
+        }
+
+        .key-value.hidden-key {
+            filter: blur(4px);
+            opacity: 0.7;
+            user-select: none;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--border);
+        }
+
+        .icon-btn.copied {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .instructions {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .faq-header {
+            padding: 16px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.02);
+            user-select: none;
+        }
+
+        .faq-header:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .faq-content {
+            padding: 0 24px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .faq-content.open {
+            padding: 16px 24px 24px;
+            max-height: 500px;
+            border-top: 1px solid var(--border);
+        }
+
+        .faq-content ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .faq-content li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Solana Vanity Wallet Generator</h1>
+        <p>Create a personalized Solana wallet address that starts with your custom text</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="input-group">
+                <label for="prefix">Your Custom Prefix</label>
+                <div class="input-wrapper">
+                    <input type="text" id="prefix" placeholder="e.g. GRANT, MOON, SOL..." maxlength="6"
+                        autocomplete="off" spellcheck="false">
+                    <span class="char-counter"><span id="char-count">0</span> / 6</span>
+                </div>
+                <div id="validation-msg" class="validation-message"></div>
+            </div>
+
+            <div class="difficulty-indicator">
+                <div class="difficulty-bar">
+                    <div id="diff-fill" class="difficulty-fill"></div>
+                </div>
+                <div>
+                    <div id="diff-text" class="difficulty-text">Enter a prefix to see difficulty</div>
+                    <div id="diff-est" class="difficulty-est"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px; font-weight: 600;">How many wallets?</div>
+            <div class="radio-group" id="count-selector">
+                <label class="radio-option"><input type="radio" name="count" value="1" checked> 1</label>
+                <label class="radio-option"><input type="radio" name="count" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="count" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="count" value="5"> 5</label>
+            </div>
+
+            <button id="main-btn" class="primary" disabled>⚡ Generate Wallet</button>
+
+            <div id="progress-area" class="progress-area">
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div id="stat-attempts" class="stat-value">0</div>
+                        <div class="stat-label">Attempts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-rate" class="stat-value">0</div>
+                        <div class="stat-label">Keys/sec</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-time" class="stat-value">0.0s</div>
+                        <div class="stat-label">Elapsed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div id="stat-found" class="stat-value">0/1</div>
+                        <div class="stat-label">Found</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar-fill"></div>
+                </div>
+                <div class="progress-text">Searching for matching wallets...</div>
+            </div>
+        </div>
+
+        <div id="results-area" class="results-area"></div>
+
+        <div class="faq-section">
+            <div class="faq-header" id="faq-toggle">
+                <span>How does this work?</span>
+                <span id="faq-icon">▼</span>
+            </div>
+            <div class="faq-content" id="faq-content">
+                <ul>
+                    <li>Solana addresses are random by default (e.g. <code>7bY3...</code>).</li>
+                    <li>This tool quickly generates thousands of valid keypairs per second until one matches your chosen
+                        prefix.</li>
+                    <li><strong>Your private key is generated safely</strong> — all computation happens on this machine,
+                        and no keys are ever saved or sent anywhere.</li>
+                    <li>A match could be instant or take days depending on the length and your CPU speed.</li>
+                    <li><strong>Always back up your private key</strong> in a secure password manager. The private key
+                        controls all funds in this wallet — treat it like cash!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prefixInput = document.getElementById('prefix');
+        const charCount = document.getElementById('char-count');
+        const validationMsg = document.getElementById('validation-msg');
+        const mainBtn = document.getElementById('main-btn');
+        const diffFill = document.getElementById('diff-fill');
+        const diffText = document.getElementById('diff-text');
+        const diffEst = document.getElementById('diff-est');
+        const progressArea = document.getElementById('progress-area');
+        const statAttempts = document.getElementById('stat-attempts');
+        const statRate = document.getElementById('stat-rate');
+        const statTime = document.getElementById('stat-time');
+        const statFound = document.getElementById('stat-found');
+        const resultsArea = document.getElementById('results-area');
+        const progressBar = document.getElementById('progress-bar');
+
+        let abortController = null;
+        let isRunning = false;
+        let validPrefix = false;
+
+        // Load saved settings
+        if (localStorage.getItem('vanityPrefix')) {
+            prefixInput.value = localStorage.getItem('vanityPrefix');
+            validateInput();
+        }
+        if (localStorage.getItem('vanityCount')) {
+            const radios = document.getElementsByName('count');
+            for (let r of radios) {
+                if (r.value === localStorage.getItem('vanityCount')) {
+                    r.checked = true;
+                    break;
+                }
+            }
+        }
+
+        // Input Validation
+        prefixInput.addEventListener('input', () => {
+            validateInput();
+        });
+
+        async function validateInput() {
+            const val = prefixInput.value;
+            charCount.textContent = val.length;
+            localStorage.setItem('vanityPrefix', val);
+
+            if (val.length === 0) {
+                validationMsg.textContent = '';
+                diffFill.style.width = '0%';
+                diffText.textContent = 'Enter a prefix to see difficulty';
+                diffEst.textContent = '';
+                mainBtn.disabled = true;
+                validPrefix = false;
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prefix: val })
+                });
+                const data = await res.json();
+
+                if (data.valid) {
+                    validationMsg.textContent = '';
+                    validPrefix = true;
+                    mainBtn.disabled = false || isRunning;
+
+                    diffText.textContent = data.difficulty;
+                    diffEst.textContent = data.estimated_time !== data.difficulty.replace(/^[🟢🟡🟠🔴]\s*/, '') ? `Est. time: ${data.estimated_time}` : '';
+
+                    // Color scaling
+                    if (val.length <= 3) { diffFill.style.width = '25%'; diffFill.style.backgroundColor = 'var(--green)'; }
+                    else if (val.length === 4) { diffFill.style.width = '50%'; diffFill.style.backgroundColor = 'var(--yellow)'; }
+                    else if (val.length === 5) { diffFill.style.width = '75%'; diffFill.style.backgroundColor = 'orange'; }
+                    else { diffFill.style.width = '100%'; diffFill.style.backgroundColor = 'var(--red)'; }
+
+                } else {
+                    validationMsg.textContent = data.suggestion;
+                    validPrefix = false;
+                    mainBtn.disabled = true;
+                    diffFill.style.width = '0%';
+                    diffText.textContent = 'Invalid characters detected';
+                    diffEst.textContent = '';
+                }
+            } catch (e) {
+                // Server might be down
+            }
+        }
+
+        // Save count preference
+        document.getElementById('count-selector').addEventListener('change', (e) => {
+            if (e.target.name === 'count') {
+                localStorage.setItem('vanityCount', e.target.value);
+            }
+        });
+
+        // Start / Stop functionality
+        mainBtn.addEventListener('click', () => {
+            if (isRunning) {
+                stopStream();
+            } else {
+                startStream();
+            }
+        });
+
+        function getSelectedCount() {
+            const radios = document.getElementsByName('count');
+            for (let r of radios) {
+                if (r.checked) return parseInt(r.value, 10);
+            }
+            return 1;
+        }
+
+        async function startStream() {
+            if (!validPrefix) return;
+
+            const prefix = prefixInput.value;
+            const count = getSelectedCount();
+
+            resultsArea.innerHTML = '';
+            progressArea.style.display = 'block';
+            statAttempts.textContent = '0';
+            statRate.textContent = '0';
+            statTime.textContent = '0.0s';
+            statFound.textContent = `0/${count}`;
+            progressBar.style.animation = 'indeterminate 1.5s infinite linear';
+            progressBar.style.width = '30%';
+
+            isRunning = true;
+            mainBtn.textContent = '■ Stop';
+            mainBtn.classList.add('stop');
+            prefixInput.disabled = true;
+
+            abortController = new AbortController();
+
+            try {
+                const response = await fetch('/api/grind', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prefix, count }),
+                    signal: abortController.signal
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+
+                    // Keep the last partial line in the buffer
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const json = JSON.parse(line.substring(6));
+                                handleEvent(json);
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    console.log('Fetch aborted');
+                } else {
+                    console.error('Fetch error:', err);
+                }
+            } finally {
+                cleanupAfterStop();
+            }
+        }
+
+        function stopStream() {
+            if (abortController) {
+                abortController.abort();
+            }
+            cleanupAfterStop();
+        }
+
+        function cleanupAfterStop() {
+            isRunning = false;
+            mainBtn.textContent = '⚡ Generate Wallet';
+            mainBtn.classList.remove('stop');
+            prefixInput.disabled = false;
+            progressBar.style.animation = 'none';
+            progressBar.style.width = '100%';
+            if (statFound.textContent.split('/')[0] === statFound.textContent.split('/')[1]) {
+                progressBar.style.backgroundColor = 'var(--green)';
+            } else {
+                progressBar.style.backgroundColor = 'var(--muted)';
+            }
+        }
+
+        function handleEvent(data) {
+            if (data.type === 'progress') {
+                statAttempts.textContent = data.attempts.toLocaleString();
+                statRate.textContent = data.rate.toLocaleString();
+                statTime.textContent = data.elapsed.toFixed(1) + 's';
+                statFound.textContent = `${data.found}/${data.needed}`;
+            }
+            else if (data.type === 'match') {
+                addResultCard(data);
+                if (data.count) {
+                    // Update found locally just in case
+                }
+            }
+            else if (data.type === 'done') {
+                stopStream();
+            }
+            else if (data.type === 'error') {
+                alert('Error: ' + data.message);
+                stopStream();
+            }
+        }
+
+        let matchCount = 0;
+        function addResultCard(match) {
+            matchCount++;
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.innerHTML = `
+            <div class="result-header">🎉 Match #${matchCount} Found at attempt ${match.attempts.toLocaleString()}</div>
+            <div class="result-body">
+                <div class="key-row">
+                    <div class="key-label">
+                        Address (Public Key)
+                    </div>
+                    <div class="key-value-container">
+                        <div class="key-value">${match.public_key}</div>
+                        <div class="action-btns">
+                            <button class="icon-btn copy-btn" data-copy="${match.public_key}">📋 Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-row">
+                    <div class="key-label">
+                        Private Key <span class="key-warning">⚠ Keep this secret — never share</span>
+                    </div>
+                    <div class="key-value-container">
+                        <div class="key-value hidden-key" id="pk-${matchCount}">${match.private_key}</div>
+                        <div class="action-btns">
+                            <button class="icon-btn toggle-btn" data-target="pk-${matchCount}">👁 Show</button>
+                            <button class="icon-btn copy-btn" data-copy="${match.private_key}">📋 Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    ✅ <strong>How to use:</strong> Open Phantom or Solflare → Add Wallet → Import Private Key → paste the private key copied above.
+                </div>
+            </div>
+        `;
+            resultsArea.prepend(card);
+
+            // Add event listeners for new buttons
+            const toggleBtn = card.querySelector('.toggle-btn');
+            toggleBtn.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.getAttribute('data-target');
+                const targetEl = document.getElementById(targetId);
+                if (targetEl.classList.contains('hidden-key')) {
+                    targetEl.classList.remove('hidden-key');
+                    e.currentTarget.innerHTML = '👁 Hide';
+                } else {
+                    targetEl.classList.add('hidden-key');
+                    e.currentTarget.innerHTML = '👁 Show';
+                }
+            });
+
+            const copyBtns = card.querySelectorAll('.copy-btn');
+            copyBtns.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const text = e.currentTarget.getAttribute('data-copy');
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        const originalText = e.currentTarget.innerHTML;
+                        e.currentTarget.innerHTML = '✓ Copied';
+                        e.currentTarget.classList.add('copied');
+                        setTimeout(() => {
+                            if (e.currentTarget) {
+                                e.currentTarget.innerHTML = originalText;
+                                e.currentTarget.classList.remove('copied');
+                            }
+                        }, 1500);
+                    } catch (err) {
+                        console.error('Failed to copy', err);
+                    }
+                });
+            });
+
+            // Smooth scroll to the first match
+            if (matchCount === 1) {
+                setTimeout(() => {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        // FAQ Toggle
+        const faqToggle = document.getElementById('faq-toggle');
+        const faqContent = document.getElementById('faq-content');
+        const faqIcon = document.getElementById('faq-icon');
+
+        faqToggle.addEventListener('click', () => {
+            faqContent.classList.toggle('open');
+            faqIcon.textContent = faqContent.classList.contains('open') ? '▲' : '▼';
+        });
+
+    </script>
+</body>
+
+</html>

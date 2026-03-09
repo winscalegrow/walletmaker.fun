@@ -1,0 +1,32 @@
+[package]
+name = "solana-vanity"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "solana-vanity"
+path = "src/main.rs"
+
+[[bin]]
+name = "solana-vanity-web"
+path = "src/server.rs"
+
+[dependencies]
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+bs58 = "0.5"
+rand = "0.8"
+rayon = "1"
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+axum = "0.7"
+tower-http = { version = "0.6", features = ["cors"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio-stream = "0.1"
+futures = "0.3"
+base64 = "0.22"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
