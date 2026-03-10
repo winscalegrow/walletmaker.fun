@@ -175,6 +175,21 @@ const DigitalSerenity: React.FC<DigitalSerenityProps> = ({ children }) => {
                     <div className="absolute bottom-0 right-0 w-2 h-2 bg-slate-300 opacity-30 rounded-full"></div>
                 </div>
 
+                {/* Social Links */}
+                <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-50" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '4.8s', opacity: 0 }}>
+                    <a
+                        href="https://x.com/winscalegrow"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-400 hover:text-white hover:scale-110 transition-all duration-200 block"
+                        aria-label="X (Twitter) Profile"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 fill-current">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.005 3.881H5.078z"></path>
+                        </svg>
+                    </a>
+                </div>
+
                 <div className="floating-element-animate -z-10" style={{ top: '25%', left: '15%', animationDelay: '0.5s' }}></div>
                 <div className="floating-element-animate -z-10" style={{ top: '60%', left: '85%', animationDelay: '1s' }}></div>
                 <div className="floating-element-animate -z-10" style={{ top: '40%', left: '10%', animationDelay: '1.5s' }}></div>
