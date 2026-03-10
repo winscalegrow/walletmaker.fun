@@ -105,7 +105,7 @@ export default function Home() {
           <CardContent className="space-y-6 pt-6 flex flex-col items-center">
 
             <div className="w-full space-y-2">
-              <label className="text-sm font-medium text-slate-300">Desired Prefix (Case-Sensitive)</label>
+              <label className="text-sm font-medium text-slate-300">Desired Prefix (Case-Insensitive)</label>
               <Input
                 value={prefix}
                 onChange={(e) => setPrefix(e.target.value)}

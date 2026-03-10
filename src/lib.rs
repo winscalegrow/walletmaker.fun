@@ -49,13 +49,11 @@ pub fn validate_prefix(prefix: &str) -> Result<(), String> {
         return Err("Prefix length cannot exceed 6 characters".to_string());
     }
 
-    for c in prefix.chars() {
-        if !BASE58_ALPHABET.contains(c) {
+    let lower_alphabet = BASE58_ALPHABET.to_lowercase();
+    for c in prefix.to_lowercase().chars() {
+        if !lower_alphabet.contains(c) {
             let suggestion = match c {
-                '0' => "⚠ '0' is not in the Solana alphabet — try '1' or 'o'",
-                'O' => "⚠ 'O' looks like zero — Solana uses 'o' (lowercase)",
-                'I' => "⚠ 'I' looks like 1 — Solana uses 'i' (lowercase) or '1'",
-                'l' => "⚠ 'l' (lowercase L) — Solana uses 'L' (uppercase)",
+                '0' => "⚠ '0' is not in the Solana alphabet — try 'o'",
                 _ => "Invalid base58 character.",
             };
             return Err(suggestion.to_string());
